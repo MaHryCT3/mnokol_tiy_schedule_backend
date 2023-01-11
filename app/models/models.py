@@ -14,6 +14,12 @@ class Pair(BaseModel):
     is_weekend: bool
 
 
+class TeacherPair(BaseModel):
+    name: str
+    group: str
+    cabinet: str
+
+
 class ScheduleDay(BaseModel):
     date: str
     day_of_week: str

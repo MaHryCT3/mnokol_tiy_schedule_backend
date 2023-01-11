@@ -17,7 +17,7 @@ async def get_schedule(
     year: int = Depends(get_current_year),
     tyuiu_api: TyuiuScheduleAPI = Depends(get_tyuiu_api),
 ) -> list[Pair]:
-    return await tyuiu_api.get_schedule(dispatcher_id, group_id, year)
+    return await tyuiu_api.get_group_schedule(dispatcher_id, group_id, year)
 
 
 @router.get('/schedule_days', response_model=list[ScheduleDay])

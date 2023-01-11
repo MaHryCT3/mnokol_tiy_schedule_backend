@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from bs4 import BeautifulSoup
 
-from app.models.models import Pair, ScheduleDay
+from app.models.models import Pair, ScheduleDay, TeacherPair
 
 if TYPE_CHECKING:
     from bs4.element import Tag
@@ -21,11 +21,16 @@ class ScheduleParser:
         week_days = self._parse_week_days(week_days_elements)
         return week_days
 
-    def parse_schedule_pairs(self) -> list[Pair]:
+    def parse_group_schedule(self) -> list[Pair]:
         """Возвращает список пар"""
         pairs_elements = self._get_pairs_elements()
-        pairs = self._parse_pairs(pairs_elements)
+        pairs = self._parse_group_pairs(pairs_elements)
         return pairs
+
+    def parse_teacher_schedule(self) -> list[TeacherPair]:
+        pairs_elements = self._get_pairs_elements()
+        teachers_pairs = self._parse_teacher_pairs(pairs_elements)
+        return teachers_pairs
 
     def _get_week_days_elements(self) -> list['Tag']:
         """Возвращает список элементов с днями недели"""
@@ -53,21 +58,27 @@ class ScheduleParser:
         """Возвращает список элементов с парами"""
         return self._main_table.find_all('td', class_='urok')
 
-    def _parse_pairs(self, pairs_elements: list['Tag']) -> list[Pair]:
+    def _parse_group_pairs(self, pairs_elements: list['Tag']) -> list[Pair]:
         """Возвращает список пар"""
         pairs = []
         for element in pairs_elements:
-            pairs.append(self._parse_pair(element))
+            pairs.append(self._parse_group_pair(element))
         return pairs
 
-    def _parse_pair(self, pair_element: 'Tag') -> Pair:
+    def _parse_teacher_pairs(self, pairs_elements: list['Tag']) -> list[TeacherPair]:
+        pairs = []
+        for element in pairs_elements:
+            pairs.append(self._parse_teacher_pair(element))
+        return pairs
+
+    def _parse_group_pair(self, pair_element: 'Tag') -> Pair:
         """Возвращает пару"""
-        name = self._get_pair_name(pair_element)
-        teacher = self._get_pair_teacher(pair_element)
-        cabinet = self._get_pair_cabinet(pair_element)
-        is_replace = self._get_pair_is_replaced(pair_element)
-        not_learning = self._get_not_learning(pair_element)
-        is_wekeend = self._get_is_weekend(pair_element)
+        name = self._parse_pair_name(pair_element)
+        teacher = self._parse_pair_teacher(pair_element)
+        cabinet = self._parse_pair_cabinet(pair_element)
+        is_replace = self._parse_pair_is_replaced(pair_element)
+        not_learning = self._parse_not_learning(pair_element)
+        is_wekeend = self._parse_is_weekend(pair_element)
         return Pair(
             name=name,
             teacher=teacher,
@@ -77,35 +88,60 @@ class ScheduleParser:
             is_weekend=is_wekeend,
         )
 
-    def _get_pair_name(self, pair_element: 'Tag') -> str | None:
+    def _parse_teacher_pair(self, pair_element: 'Tag') -> TeacherPair:
+        teacher_pair, group = self._parse_teacher_pair_and_group(pair_element)
+        cabinet = self._parse_pair_cabinet(pair_element)
+        return TeacherPair(
+            name=teacher_pair,
+            group=group,
+            cabinet=cabinet,
+        )
+
+    def _parse_pair_name(self, pair_element: 'Tag') -> str | None:
         name = pair_element.find('div', class_='disc')
         if not name:
-            return ''
+            return ''  # Not None for frontend
         return name.text.strip()
 
-    def _get_pair_teacher(self, pair_element: 'Tag') -> str | None:
+    def _parse_pair_teacher(self, pair_element: 'Tag') -> str | None:
         teacher = pair_element.find('div', class_='prep')
         if not teacher:
-            return ''
+            return ''  # Not None for frontend
         return teacher.text.strip()
 
-    def _get_pair_cabinet(self, pair_element: 'Tag') -> str | None:
+    def _parse_pair_cabinet(self, pair_element: 'Tag') -> str | None:
         cabinet = pair_element.find('div', class_='cab')
         if not cabinet:
-            return ''
+            return ''  # Not None for frontend
         return cabinet.text.strip()
 
-    def _get_pair_is_replaced(self, pair_element: 'Tag') -> bool:
-        return True if pair_element.find('div', class_='zamena') else False
+    def _parse_pair_is_replaced(self, pair_element: 'Tag') -> bool:
+        return True if pair_element.find('table', class_='zamena') else False
 
-    def _get_not_learning(self, pair_element: 'Tag') -> bool:
+    def _parse_not_learning(self, pair_element: 'Tag') -> bool:
         text = pair_element.text.strip()
         if text == 'Не учатся':
             return True
         return False
 
-    def _get_is_weekend(self, pair_element: 'Tag') -> bool:
+    def _parse_is_weekend(self, pair_element: 'Tag') -> bool:
         text = pair_element.text.strip()
         if text == 'Каникулы':
             return True
         return False
+
+    def _parse_teacher_pair_and_group(self, pair_element: 'Tag') -> tuple[str, str]:
+        full_name = self._get_teacher_full_name_pair(pair_element)
+        print(full_name)
+        if not full_name or full_name.text.isspace():
+            return '', ''  # Not None for frontend
+        print(f'a{full_name.text}a')
+        separated_full_name = full_name.getText(':::')
+        print(separated_full_name)
+        teacher_pair, group = separated_full_name.split(':::', maxsplit=2)
+
+        return teacher_pair, group
+
+    def _get_teacher_full_name_pair(self, pair_element: 'Tag') -> Optional['Tag']:
+        full_name = pair_element.find('div', class_='disc')
+        return full_name
