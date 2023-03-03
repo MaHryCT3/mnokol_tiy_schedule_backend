@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 from bs4 import BeautifulSoup
 
-from app.models.models import Pair, ScheduleDay, TeacherPair
+from app.models.models import CabinetPair, Pair, ScheduleDay, TeacherPair
 
 if TYPE_CHECKING:
     from bs4.element import Tag
@@ -32,6 +32,15 @@ class ScheduleParser:
         teachers_pairs = self._parse_teacher_pairs(pairs_elements)
         return teachers_pairs
 
+    def parse_cabinet_schedule(self) -> list[CabinetPair]:
+        pairs_elemnts = self._get_pairs_elements()
+        cabinet_pairs = self._parse_cabinet_pairs(pairs_elemnts)
+        return cabinet_pairs
+
+    def _get_pairs_elements(self) -> list['Tag']:
+        """Возвращает список элементов с парами"""
+        return self._main_table.find_all('td', class_='urok')
+
     def _get_week_days_elements(self) -> list['Tag']:
         """Возвращает список элементов с днями недели"""
         return self._main_table.find_all('td', align='center')
@@ -54,22 +63,15 @@ class ScheduleParser:
             week_type=week_type,
         )
 
-    def _get_pairs_elements(self) -> list['Tag']:
-        """Возвращает список элементов с парами"""
-        return self._main_table.find_all('td', class_='urok')
-
     def _parse_group_pairs(self, pairs_elements: list['Tag']) -> list[Pair]:
         """Возвращает список пар"""
-        pairs = []
-        for element in pairs_elements:
-            pairs.append(self._parse_group_pair(element))
-        return pairs
+        return [self._parse_group_pair(element) for element in pairs_elements]
 
     def _parse_teacher_pairs(self, pairs_elements: list['Tag']) -> list[TeacherPair]:
-        pairs = []
-        for element in pairs_elements:
-            pairs.append(self._parse_teacher_pair(element))
-        return pairs
+        return [self._parse_teacher_pair(element for element in pairs_elements)]
+
+    def _parse_cabinet_pairs(self, pairs_elements: list['Tag']) -> list[CabinetPair]:
+        return [self._parse_cabinet_pair(element) for element in pairs_elements]
 
     def _parse_group_pair(self, pair_element: 'Tag') -> Pair:
         """Возвращает пару"""
@@ -95,6 +97,14 @@ class ScheduleParser:
             name=teacher_pair,
             group=group,
             cabinet=cabinet,
+        )
+
+    def _parse_cabinet_pair(self, cab_pair_element: 'Tag') -> CabinetPair:
+        pair, group, teacher = self._parse_pair_group_teacher_in_cabinet(cab_pair_element)
+        return CabinetPair(
+            name=pair,
+            group=group,
+            teacher=teacher,
         )
 
     def _parse_pair_name(self, pair_element: 'Tag') -> str | None:
@@ -131,14 +141,21 @@ class ScheduleParser:
         return False
 
     def _parse_teacher_pair_and_group(self, pair_element: 'Tag') -> tuple[str, str]:
-        full_name = self._get_teacher_full_name_pair(pair_element)
+        full_name = self._get_pair_name(pair_element)
         if not full_name or full_name.text.isspace():
             return '', ''  # Not None for frontend
         separated_full_name = full_name.getText(':::')
         teacher_pair, group = separated_full_name.split(':::', maxsplit=2)
-
         return teacher_pair, group
 
-    def _get_teacher_full_name_pair(self, pair_element: 'Tag') -> Optional['Tag']:
+    def _parse_pair_group_teacher_in_cabinet(self, cab_pair_element: 'Tag') -> tuple[str, str, str]:
+        full_pair_name = self._get_pair_name(cab_pair_element)
+        if not full_pair_name or full_pair_name.text.isspace():
+            return '', '', ''  # Not None for frontend
+        separated_full_name = full_pair_name.getText(':::')
+        pair, group, teacher = separated_full_name.split(':::', maxsplit=3)
+        return pair, group, teacher
+
+    def _get_pair_name(self, pair_element: 'Tag') -> Optional['Tag']:
         full_name = pair_element.find('div', class_='disc')
         return full_name

@@ -1,14 +1,6 @@
 from pydantic import parse_obj_as
 
-from app.models.models import (
-    Cabinet,
-    Group,
-    Pair,
-    ScheduleDay,
-    ScheduleDispatcher,
-    Teacher,
-    TeacherPair,
-)
+from app.models.models import Cabinet, CabinetPair, Group, Pair, ScheduleDay, ScheduleDispatcher, Teacher, TeacherPair
 from app.models.models_parser import parse_cabinets, parse_groups, parse_teachers
 from app.services.tyuiu.http_client import HTTPClient
 from app.services.tyuiu.schedule_parser import ScheduleParser
@@ -74,6 +66,11 @@ class TyuiuScheduleAPI(HTTPClient):
         teacher_schedule_html = await self._get_raw_teacher_schedule(teacher_id, dispatchers)
         return self._parse_teacher_schedule_html(teacher_schedule_html)
 
+    async def get_cabinet_schedule(self, cabinet_id: int) -> list[CabinetPair]:
+        dispatchers = await self.get_schedule_dispatchers()
+        cabinet_schedule_html = await self._get_raw_cabinet_schedule(cabinet_id, dispatchers)
+        return self._prase_cabinet_schedule_html(cabinet_schedule_html)
+
     async def get_schedule_days(self, year: int) -> list[ScheduleDay]:
         frist_group = (await self.get_all_groups())[0]
         first_group_raw_schedule = await self._get_raw_group_schedule(
@@ -86,8 +83,12 @@ class TyuiuScheduleAPI(HTTPClient):
         params = self._get_group_schedule_params(dispatcher_id, group_id, year)
         return await self._get_schedule_html(params)
 
-    async def _get_raw_teacher_schedule(self, teacher_id: int, dispatchers: list[ScheduleDispatcher]) -> list[Pair]:
+    async def _get_raw_teacher_schedule(self, teacher_id: int, dispatchers: list[ScheduleDispatcher]) -> str:
         params = self._get_teacher_schedule_params(teacher_id, dispatchers)
+        return await self._get_schedule_html(params)
+
+    async def _get_raw_cabinet_schedule(self, cabinet_id: int, dispatcher: list[ScheduleDispatcher]) -> str:
+        params = self._get_cabinet_params(cabinet_id, dispatcher)
         return await self._get_schedule_html(params)
 
     async def _get_schedule_html(self, params: dict) -> str:
@@ -106,6 +107,10 @@ class TyuiuScheduleAPI(HTTPClient):
         parser = ScheduleParser(schedule_html)
         return parser.parse_teacher_schedule()
 
+    def _prase_cabinet_schedule_html(self, schedule_html: str) -> list[CabinetPair]:
+        parser = ScheduleParser(schedule_html)
+        return parser.parse_cabinet_schedule()
+
     def _get_group_schedule_params(self, dispatcher_id: int, group_id: int, year: int) -> str:
         return {
             'action': 'group',
@@ -121,6 +126,16 @@ class TyuiuScheduleAPI(HTTPClient):
         params = {
             'action': 'prep',
             'prep': teacher_id,
+            'vr': 1,
+            'count': len(dispatchers),
+        }
+        return params | dispatchers_params
+
+    def _get_cabinet_params(self, cabinet_id: int, dispatchers: list[ScheduleDispatcher]) -> dict:
+        dispatchers_params = self._get_dispatchers_params(dispatchers)
+        params = {
+            'action': 'cab',
+            'prep': cabinet_id,
             'vr': 1,
             'count': len(dispatchers),
         }

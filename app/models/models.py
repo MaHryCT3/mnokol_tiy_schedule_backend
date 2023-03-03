@@ -20,6 +20,12 @@ class TeacherPair(BaseModel):
     cabinet: str
 
 
+class CabinetPair(BaseModel):
+    name: str
+    group: str
+    teacher: str
+
+
 class ScheduleDay(BaseModel):
     date: str
     day_of_week: str

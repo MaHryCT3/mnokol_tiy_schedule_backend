@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.api.deps import get_current_year, get_schedule_days_memory, get_tyuiu_api
-from app.models.models import Pair, ScheduleDay, TeacherPair
+from app.models.models import CabinetPair, Pair, ScheduleDay, TeacherPair
 from app.services.tyuiu.schedule_api import TyuiuScheduleAPI
 from app.services.tyuiu.schedule_days_memory import ScheduleDaysMemory
 
@@ -26,6 +26,15 @@ async def get_teacher_schedule(
     tyuiu_api: TyuiuScheduleAPI = Depends(get_tyuiu_api),
 ) -> list[TeacherPair]:
     return await tyuiu_api.get_teacher_schedule(teacher_id)
+
+
+@router.get('/cabinet/{cabined_id}', response_model=list[CabinetPair])
+async def get_cabinets_schedule(
+    cabinet_id: int,
+    *,
+    tyuiu_api: TyuiuScheduleAPI = Depends(get_tyuiu_api),
+) -> list[CabinetPair]:
+    return await tyuiu_api.get_cabinet_schedule(cabinet_id)
 
 
 @router.get('/schedule_days', response_model=list[ScheduleDay])
