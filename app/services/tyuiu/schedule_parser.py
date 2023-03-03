@@ -12,7 +12,7 @@ class ScheduleParser:
     """Парсит страницу официального расписания ТИУ"""
 
     def __init__(self, html: str):
-        html_soup = BeautifulSoup(html, 'lxml')
+        html_soup = BeautifulSoup(html, 'html.parser')
         self._main_table = html_soup.find('table', class_='main_table')
 
     def parse_schedule_days(self) -> list[ScheduleDay]:
@@ -132,12 +132,9 @@ class ScheduleParser:
 
     def _parse_teacher_pair_and_group(self, pair_element: 'Tag') -> tuple[str, str]:
         full_name = self._get_teacher_full_name_pair(pair_element)
-        print(full_name)
         if not full_name or full_name.text.isspace():
             return '', ''  # Not None for frontend
-        print(f'a{full_name.text}a')
         separated_full_name = full_name.getText(':::')
-        print(separated_full_name)
         teacher_pair, group = separated_full_name.split(':::', maxsplit=2)
 
         return teacher_pair, group

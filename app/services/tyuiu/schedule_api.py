@@ -10,8 +10,8 @@ from app.models.models import (
     TeacherPair,
 )
 from app.models.models_parser import parse_cabinets, parse_groups, parse_teachers
-from app.tyuiu.schedule_parser import ScheduleParser
-from app.tyuiu.http_client import HTTPClient
+from app.services.tyuiu.http_client import HTTPClient
+from app.services.tyuiu.schedule_parser import ScheduleParser
 
 
 class TyuiuScheduleAPI(HTTPClient):
@@ -69,10 +69,10 @@ class TyuiuScheduleAPI(HTTPClient):
         pairs = self._parse_group_schedule_html(group_schedule_html)
         return pairs
 
-    async def get_teacher_schedule(self, teacher_id: int):
+    async def get_teacher_schedule(self, teacher_id: int) -> list[TeacherPair]:
         dispatchers = await self.get_schedule_dispatchers()
         teacher_schedule_html = await self._get_raw_teacher_schedule(teacher_id, dispatchers)
-        teacher_pairs = self._parse_teacher_schedule_html(teacher_schedule_html)
+        return self._parse_teacher_schedule_html(teacher_schedule_html)
 
     async def get_schedule_days(self, year: int) -> list[ScheduleDay]:
         frist_group = (await self.get_all_groups())[0]
@@ -84,11 +84,11 @@ class TyuiuScheduleAPI(HTTPClient):
 
     async def _get_raw_group_schedule(self, dispatcher_id: int, group_id: int, year: int) -> str:
         params = self._get_group_schedule_params(dispatcher_id, group_id, year)
-        return self._get_schedule_html(params)
+        return await self._get_schedule_html(params)
 
     async def _get_raw_teacher_schedule(self, teacher_id: int, dispatchers: list[ScheduleDispatcher]) -> list[Pair]:
         params = self._get_teacher_schedule_params(teacher_id, dispatchers)
-        return self._get_schedule_html(params)
+        return await self._get_schedule_html(params)
 
     async def _get_schedule_html(self, params: dict) -> str:
         response = await self.request_text(self.BASE_LINK + 'shedule/show_shedule.php', params=params)
@@ -116,7 +116,7 @@ class TyuiuScheduleAPI(HTTPClient):
             'vr': 1,
         }
 
-    def _get_teacher_schedule_params(self, teacher_id: int, dispatchers: list[ScheduleDispatcher]):
+    def _get_teacher_schedule_params(self, teacher_id: int, dispatchers: list[ScheduleDispatcher]) -> dict:
         dispatchers_params = self._get_dispatchers_params(dispatchers)
         params = {
             'action': 'prep',
@@ -126,14 +126,14 @@ class TyuiuScheduleAPI(HTTPClient):
         }
         return params | dispatchers_params
 
-    def _get_dispatchers_params(dispatchers: list[ScheduleDispatcher]) -> dict:
+    def _get_dispatchers_params(self, dispatchers: list[ScheduleDispatcher]) -> dict:
         dispatcher_params = {}
         for i, dispatcher in enumerate(dispatchers):
             dispatcher_params.update(
                 {
-                    f'shed{i}': int(dispatcher.id),
-                    f'union{i}': 0,
-                    f'year{i}': dispatcher.year,
+                    f'shed[{i}]': int(dispatcher.id),
+                    f'union[{i}]': 0,
+                    f'year[{i}]': dispatcher.year,
                 }
             )
         return dispatcher_params

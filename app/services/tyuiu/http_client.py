@@ -1,4 +1,5 @@
 import aiohttp
+from loguru import logger
 
 
 class HTTPClient:
@@ -10,6 +11,7 @@ class HTTPClient:
     ) -> aiohttp.ClientResponse:
         async with self._session.request(http_method, url, params=params, data=data) as response:
             await response.read()
+        logger.debug('Get response from {} {} ->\n{}', http_method, response.url, await response.text())
         return response
 
     async def request_json(

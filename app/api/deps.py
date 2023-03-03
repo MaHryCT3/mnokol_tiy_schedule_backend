@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from app.tyuiu.schedule_api import TyuiuScheduleAPI
-from app.tyuiu.schedule_days_memory import ScheduleDaysMemory
+from app.services.tyuiu.schedule_api import TyuiuScheduleAPI
+from app.services.tyuiu.schedule_days_memory import ScheduleDaysMemory
 
 
 def get_current_year() -> int:

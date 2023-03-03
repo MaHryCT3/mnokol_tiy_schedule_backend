@@ -1,11 +1,10 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from loguru import logger
 
-from app.tyuiu.schedule_api import TyuiuScheduleAPI
 from app.models import ScheduleDay
-from app.tyuiu.utils import singleton
-
+from app.services.tyuiu.schedule_api import TyuiuScheduleAPI
+from app.utils import singleton
 
 tuymen_timezone = timezone(offset=timedelta(hours=5))
 
@@ -27,7 +26,7 @@ class ScheduleDaysMemory:
             await self.update_schedule_days(year)
         return self._schedule_days
 
-    async def update_schedule_days(self, year) -> None:
+    async def update_schedule_days(self, year: int) -> None:
         self._schedule_days = await self._schedule_api.get_schedule_days(year)
         self._last_update = datetime.now(tuymen_timezone)
 

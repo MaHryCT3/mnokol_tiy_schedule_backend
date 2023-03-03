@@ -1,1 +1,1 @@
-from app.models.models import ScheduleDay, Pair, Group, Teacher, Cabinet, ScheduleDispatcher, WeekType
+from app.models.models import Cabinet, Group, Pair, ScheduleDay, ScheduleDispatcher, Teacher, WeekType
