@@ -28,7 +28,7 @@ async def get_teacher_schedule(
     return await tyuiu_api.get_teacher_schedule(teacher_id)
 
 
-@router.get('/cabinet/{cabined_id}', response_model=list[CabinetPair])
+@router.get('/cabinet/{cabinet_id}', response_model=list[CabinetPair])
 async def get_cabinets_schedule(
     cabinet_id: int,
     *,
