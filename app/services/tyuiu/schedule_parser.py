@@ -68,7 +68,7 @@ class ScheduleParser:
         return [self._parse_group_pair(element) for element in pairs_elements]
 
     def _parse_teacher_pairs(self, pairs_elements: list['Tag']) -> list[TeacherPair]:
-        return [self._parse_teacher_pair(element for element in pairs_elements)]
+        return [self._parse_teacher_pair(element) for element in pairs_elements]
 
     def _parse_cabinet_pairs(self, pairs_elements: list['Tag']) -> list[CabinetPair]:
         return [self._parse_cabinet_pair(element) for element in pairs_elements]

@@ -69,7 +69,7 @@ class TyuiuScheduleAPI(HTTPClient):
     async def get_cabinet_schedule(self, cabinet_id: int) -> list[CabinetPair]:
         dispatchers = await self.get_schedule_dispatchers()
         cabinet_schedule_html = await self._get_raw_cabinet_schedule(cabinet_id, dispatchers)
-        return self._prase_cabinet_schedule_html(cabinet_schedule_html)
+        return self._parse_cabinet_schedule_html(cabinet_schedule_html)
 
     async def get_schedule_days(self, year: int) -> list[ScheduleDay]:
         frist_group = (await self.get_all_groups())[0]
@@ -107,7 +107,7 @@ class TyuiuScheduleAPI(HTTPClient):
         parser = ScheduleParser(schedule_html)
         return parser.parse_teacher_schedule()
 
-    def _prase_cabinet_schedule_html(self, schedule_html: str) -> list[CabinetPair]:
+    def _parse_cabinet_schedule_html(self, schedule_html: str) -> list[CabinetPair]:
         parser = ScheduleParser(schedule_html)
         return parser.parse_cabinet_schedule()
 
