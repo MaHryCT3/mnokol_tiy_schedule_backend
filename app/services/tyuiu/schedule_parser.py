@@ -92,19 +92,23 @@ class ScheduleParser:
 
     def _parse_teacher_pair(self, pair_element: 'Tag') -> TeacherPair:
         teacher_pair, group = self._parse_teacher_pair_and_group(pair_element)
+        is_replace = self._parse_pair_is_replaced(pair_element)
         cabinet = self._parse_pair_cabinet(pair_element)
         return TeacherPair(
             name=teacher_pair,
             group=group,
             cabinet=cabinet,
+            is_replace=is_replace,
         )
 
     def _parse_cabinet_pair(self, cab_pair_element: 'Tag') -> CabinetPair:
         pair, group, teacher = self._parse_pair_group_teacher_in_cabinet(cab_pair_element)
+        is_replace = self._parse_pair_is_replaced(cab_pair_element)
         return CabinetPair(
             name=pair,
             group=group,
             teacher=teacher,
+            is_replace=is_replace,
         )
 
     def _parse_pair_name(self, pair_element: 'Tag') -> str | None:

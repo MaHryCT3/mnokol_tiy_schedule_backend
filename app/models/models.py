@@ -18,12 +18,14 @@ class TeacherPair(BaseModel):
     name: str
     group: str
     cabinet: str
+    is_replace: bool
 
 
 class CabinetPair(BaseModel):
     name: str
     group: str
     teacher: str
+    is_replace: bool
 
 
 class ScheduleDay(BaseModel):
