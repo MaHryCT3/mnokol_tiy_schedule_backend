@@ -28,4 +28,6 @@ RUN apt install make
 COPY ./app/ ./app/
 COPY ./Makefile .
 
+EXPOSE 443
+
 CMD ["make", "run-production"]
