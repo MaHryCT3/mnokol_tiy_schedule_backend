@@ -27,20 +27,6 @@ git clone https://github.com/MaHryCT3/tiy_vizor_backend.git
 ```
 ### Запуск приложения
 
-### Продакшен
-
-```bash
-make build
-```
-
-или
-
-```bash
-pass
-```
-
-### Разработка
-
 ```bash
 make run-dev
 ```
@@ -50,3 +36,8 @@ make run-dev
 ```bash
 uvicorn app:app --reload --port 443
 ```
+
+
+### Deploy
+
+Гайд по [деплою](/deployment.md) 
