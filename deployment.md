@@ -60,7 +60,6 @@ server {
                 proxy_pass http://127.0.0.1:4430;
                 proxy_set_header X-Forwarded-Host $server_name;
                 proxy_set_header X-Real-IP $remote_addr;
-                add_header Access-Control-Allow-Origin *;
         }
 
 }
