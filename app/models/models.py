@@ -12,6 +12,8 @@ class Pair(BaseModel):
     is_replace: bool
     not_learning: bool
     is_weekend: bool
+    is_consultation: bool
+    is_exam: bool
 
 
 class TeacherPair(BaseModel):

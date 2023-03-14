@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tiyvizor"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["MaHryCT3 <mahryct123@gmail.com>"]
 readme = "README.md"

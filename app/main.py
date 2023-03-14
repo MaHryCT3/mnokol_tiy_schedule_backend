@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import api_router
 from app.services.tyuiu.schedule_api import TyuiuScheduleAPI
 
-app = FastAPI()
+app = FastAPI(title='TIY VIZOR', version='0.1.1')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],

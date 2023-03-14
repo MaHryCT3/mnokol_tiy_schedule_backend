@@ -81,6 +81,7 @@ class ScheduleParser:
         is_replace = self._parse_pair_is_replaced(pair_element)
         not_learning = self._parse_not_learning(pair_element)
         is_wekeend = self._parse_is_weekend(pair_element)
+        is_consultation, is_exam = self._parse_exam_or_consulatation(pair_element)
         return Pair(
             name=name,
             teacher=teacher,
@@ -88,12 +89,14 @@ class ScheduleParser:
             is_replace=is_replace,
             not_learning=not_learning,
             is_weekend=is_wekeend,
+            is_consultation=is_consultation,
+            is_exam=is_exam,
         )
 
     def _parse_teacher_pair(self, pair_element: 'Tag') -> TeacherPair:
         teacher_pair, group = self._parse_teacher_pair_and_group(pair_element)
-        is_replace = self._parse_pair_is_replaced(pair_element)
         cabinet = self._parse_pair_cabinet(pair_element)
+        is_replace = self._parse_pair_is_replaced(pair_element)
         return TeacherPair(
             name=teacher_pair,
             group=group,
@@ -143,6 +146,19 @@ class ScheduleParser:
         if text == 'Каникулы':
             return True
         return False
+
+    def _parse_exam_or_consulatation(self, pair_element: 'Tag') -> tuple[True, False]:
+        exam_or_cons_element = pair_element.find('td', class_='head_ekz')
+        if exam_or_cons_element:
+            if 'консультация' in exam_or_cons_element.text.lower():
+                return True, False
+            else:
+                return False, True
+        else:
+            return False, False
+
+    def _parse_pair_is_consultation(self, pair_element: 'Tag') -> bool:
+        pass
 
     def _parse_teacher_pair_and_group(self, pair_element: 'Tag') -> tuple[str, str]:
         full_name = self._get_pair_name(pair_element)
